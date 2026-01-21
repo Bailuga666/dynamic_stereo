@@ -18,6 +18,7 @@ from omegaconf import OmegaConf
 from dynamic_stereo.evaluation.utils.utils import aggregate_and_print_results
 
 import dynamic_stereo.datasets.dynamic_stereo_datasets as datasets
+from dynamic_stereo.datasets.custom_dataset import CustomStereoDataset
 
 from dynamic_stereo.models.core.model_zoo import (
     get_all_model_default_configs,
@@ -92,6 +93,10 @@ def run_eval(cfg: DefaultConfig):
             add_monkaa=False,
             add_driving=False,
             things_test=True,
+        )
+    elif cfg.dataset_name == "custom":
+        test_dataloader = CustomStereoDataset(
+            root="./my_data", sample_len=cfg.sample_len
         )
     elif cfg.dataset_name == "real":
         for real_sequence_name in ["teddy_static", "ignacio_waving", "nikita_reading"]:

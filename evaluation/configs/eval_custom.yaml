@@ -1,0 +1,8 @@
+defaults:
+  - default_config_eval
+visualize_interval: 1
+exp_dir: ./outputs/custom_eval
+dataset_name: custom
+sample_len: 5
+MODEL:
+    model_name: DynamicStereoModel
