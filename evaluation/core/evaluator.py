@@ -5,6 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
+import numpy as np
 from collections import defaultdict
 import torch.nn.functional as F
 import torch
@@ -86,6 +87,9 @@ class Evaluator(Configurable):
             assert "disparity" in predictions
             predictions["disparity"] = predictions["disparity"][:, :1].clone().cpu()
 
+            print(f"Predictions keys: {predictions.keys()}")
+            print(f"Disparity shape: {predictions['disparity'].shape}")
+
             if not is_real_data:
                 predictions["disparity"] = predictions["disparity"] * (
                     batch_dict["disparity_mask"].round()
@@ -134,4 +138,13 @@ class Evaluator(Configurable):
                     step=step,
                     writer=writer,
                 )
+
+            # Save predicted disparities
+            if predictions["disparity"].shape[0] > 0:
+                disparity_dir = os.path.join(self.exp_dir, "disparities")
+                os.makedirs(disparity_dir, exist_ok=True)
+                for seq_idx in range(predictions["disparity"].shape[0]):
+                    disp = predictions["disparity"][seq_idx, 0].cpu().numpy()
+                    np.save(os.path.join(disparity_dir, f"batch_{batch_idx}_frame_{seq_idx}.npy"), disp)
+
         return per_batch_eval_results

@@ -1,0 +1,35 @@
+# Data directories
+my_data/
+outputs/
+checkpoints/
+dynamic_replica_data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+
+# Model weights (if not wanted)
+# checkpoints/  # Uncomment if you want to ignore checkpoints

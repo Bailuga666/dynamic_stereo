@@ -157,3 +157,7 @@ dynamic_stereo 的大部分内容根据 CC-BY-NC 许可证，但项目的部分�
 结果保存在 ./outputs/custom_eval/visualisations/ 文件夹中。
 结果形式：可视化图像（PNG格式），显示预测的视差图（disparity map），通常是彩色编码的深度/视差热图，帮助你直观看到场景的深度信息。没有数值指标，因为没有真实标签。
 如果图像分辨率高，建议添加 MODEL.DynamicStereoModel.kernel_size=10 以减少内存使用。确保GPU内存足够（推荐32GB）。如果需要调整序列长度，修改 sample_len。
+
+python prepare_data.py
+python ./evaluation/evaluate.py --config-name eval_custom MODEL.DynamicStereoModel.model_weights=./checkpoints/dynamic_stereo_sf.pth
+python create_depth_video.py

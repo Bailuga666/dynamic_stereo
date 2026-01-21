@@ -122,6 +122,7 @@ def run_eval(cfg: DefaultConfig):
     evaluate_result = evaluator.evaluate_sequence(
         model,
         test_dataloader,
+        is_real_data=(cfg.dataset_name == "custom"),
     )
 
     aggreegate_result = aggregate_and_print_results(evaluate_result)
