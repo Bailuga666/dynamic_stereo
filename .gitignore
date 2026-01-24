@@ -3,7 +3,9 @@ my_data/
 outputs/
 checkpoints/
 dynamic_replica_data/
-
+temp_workspace/
+pipeline_outputs/
+pipeline_outputs.zip
 # Python cache
 __pycache__/
 *.pyc

@@ -28,14 +28,16 @@ class CustomStereoDataset(StereoSequenceDataset):
         self.num_frames = len(self.image_pairs)
 
     def __len__(self):
-        return max(1, self.num_frames - self.sample_len + 1)
+        # Allow iterating over all frames as starting points
+        return self.num_frames
 
     def __getitem__(self, index):
         start_idx = index
-        end_idx = min(start_idx + self.sample_len, self.num_frames)
-
+        end_idx = start_idx + self.sample_len
+        
         imgs = []
-        for i in range(start_idx, end_idx):
+        # Current valid frames
+        for i in range(start_idx, min(end_idx, self.num_frames)):
             left_path = os.path.join(self.root, "left", self.image_pairs[i][0])
             right_path = os.path.join(self.root, "right", self.image_pairs[i][1])
 
@@ -46,6 +48,20 @@ class CustomStereoDataset(StereoSequenceDataset):
             left_tensor = torch.from_numpy(np.array(left_img)).permute(2, 0, 1).float() / 255.0
             right_tensor = torch.from_numpy(np.array(right_img)).permute(2, 0, 1).float() / 255.0
 
+            # DynamicStereo requires width to be large enough for multi-scale pooling
+            # E.g. 224 width causes crash. We pad to be multiples of 32 and at least 256 width.
+            c, h, w = left_tensor.shape
+            target_w = max(256, ((w + 31) // 32) * 32)
+            target_h = ((h + 31) // 32) * 32
+            
+            pad_h = target_h - h
+            pad_w = target_w - w
+            
+            if pad_h > 0 or pad_w > 0:
+                # Pad (Left, Right, Top, Bottom)
+                left_tensor = torch.nn.functional.pad(left_tensor, (0, pad_w, 0, pad_h))
+                right_tensor = torch.nn.functional.pad(right_tensor, (0, pad_w, 0, pad_h))
+
             imgs.append(torch.stack([left_tensor, right_tensor], 0))
 
         # 如果序列长度不够，重复最后一帧
@@ -54,4 +70,5 @@ class CustomStereoDataset(StereoSequenceDataset):
 
         imgs = torch.stack(imgs, 0)  # [sample_len, 2, 3, H, W]
 
-        return {"img": imgs}
+        # Original size for cropping
+        return {"img": imgs, "original_size": torch.tensor([h, w])}

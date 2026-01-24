@@ -47,6 +47,7 @@ class DefaultConfig:
     gpu_idx: int = 0
 
     visualize_interval: int = 0  # Use 0 for no visualization
+    data_root: str = "./my_data"
 
     # Override hydra's working directory to current working dir,
     # also disable storing the .hydra logs:
@@ -96,7 +97,7 @@ def run_eval(cfg: DefaultConfig):
         )
     elif cfg.dataset_name == "custom":
         test_dataloader = CustomStereoDataset(
-            root="./my_data", sample_len=cfg.sample_len
+            root=cfg.data_root, sample_len=cfg.sample_len
         )
     elif cfg.dataset_name == "real":
         for real_sequence_name in ["teddy_static", "ignacio_waving", "nikita_reading"]:

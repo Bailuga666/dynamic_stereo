@@ -85,17 +85,24 @@ class Evaluator(Configurable):
                 predictions = model(batch_dict)
 
             assert "disparity" in predictions
-            predictions["disparity"] = predictions["disparity"][:, :1].clone().cpu()
+            # predictions["disparity"] = predictions["disparity"][:, :1].clone().cpu() # Removed to handle video generation
 
             print(f"Predictions keys: {predictions.keys()}")
             print(f"Disparity shape: {predictions['disparity'].shape}")
 
-            if not is_real_data:
-                predictions["disparity"] = predictions["disparity"] * (
-                    batch_dict["disparity_mask"].round()
-                )
+            # Always take the first frame of the predicted sequence.
+            # Since our custom dataset now slides by 1 and pads the end,
+            # Batch i corresponds to Frame i.
+            predictions["disparity"] = predictions["disparity"][:, :1].clone().cpu()
 
-                batch_eval_result, seq_length = eval_batch(batch_dict, predictions)
+            # Crop if padding was applied
+            if "original_size" in batch_dict:
+                h_orig, w_orig = batch_dict["original_size"][0]
+                h_orig = int(h_orig.item())
+                w_orig = int(w_orig.item())
+                predictions["disparity"] = predictions["disparity"][..., :h_orig, :w_orig]
+
+            if not is_real_data:
 
                 per_batch_eval_results.append((batch_eval_result, seq_length))
                 pretty_print_perception_metrics(batch_eval_result)
@@ -145,6 +152,10 @@ class Evaluator(Configurable):
                 os.makedirs(disparity_dir, exist_ok=True)
                 for seq_idx in range(predictions["disparity"].shape[0]):
                     disp = predictions["disparity"][seq_idx, 0].cpu().numpy()
-                    np.save(os.path.join(disparity_dir, f"batch_{batch_idx}_frame_{seq_idx}.npy"), disp)
+                    # Use batch_idx to name the file, as batch_idx == frame_idx in our new custom scheme
+                    if is_real_data:
+                         np.save(os.path.join(disparity_dir, f"frame_{batch_idx:04d}.npy"), disp)
+                    else:
+                         np.save(os.path.join(disparity_dir, f"batch_{batch_idx}_frame_{seq_idx}.npy"), disp)
 
         return per_batch_eval_results
